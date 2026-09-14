@@ -1,4 +1,4 @@
-local BASE_URL = ...
+local BASE_URL = "https://raw.githubusercontent.com/Gorillatagmodder123456/noxvapeMain/main/noxvape-main/"
 local HttpService = game:GetService("HttpService")
 
 local function load(url, arg)
@@ -8,34 +8,15 @@ local function load(url, arg)
     return fn(arg)
 end
 
-local function getRepositoryInfo()
-    local owner, repo = BASE_URL:match("github%.com/([^/]+)/([^/]+)/")
-    assert(owner and repo, "noxvape: BASE_URL must point to a GitHub repository")
-
-    repo = repo:gsub("%.git$", "")
-    local branch = BASE_URL:match("githubusercontent%.com/[^/]+/[^/]+/([^/]+)/")
-    branch = branch or "main"
-
-    return owner, repo, branch
-end
-
 local function getDirectory(path)
-    local owner, repo, branch = getRepositoryInfo()
-    local apiUrl = string.format(
-        "https://api.github.com/repos/%s/%s/contents/%s?ref=%s",
-        owner,
-        repo,
-        path,
-        branch
-    )
-
+    local apiUrl = "https://api.github.com/repos/Gorillatagmodder123456/noxvapeMain/contents/" .. path .. "?ref=main"
     local response = game:HttpGet(apiUrl)
     local data = HttpService:JSONDecode(response)
+
     assert(type(data) == "table", "noxvape: invalid GitHub directory response")
 
     return data
 end
-
 local function collectLuaFiles(path, result)
     result = result or {}
 
