@@ -1,4 +1,4 @@
-local BASE_URL = "https://raw.githubusercontent.com/Gorillatagmodder123456/noxvapeMain/main/noxvape-main/"
+local BASE_URL = "https://github.com/Gorillatagmodder123456/noxvapeMain"
 local HttpService = game:GetService("HttpService")
 
 local function load(url, arg)
