@@ -1,51 +1,54 @@
-
 local BASE_URL = "https://raw.githubusercontent.com/Gorillatagmodder123456/noxvapeMain/main/noxvape-main/"
 local HttpService = game:GetService("HttpService")
 
 local function load(path, arg)
     local source = game:HttpGet(BASE_URL .. path)
     local fn, err = loadstring(source)
-
     assert(fn, "noxvape load error: " .. tostring(err))
-
     return fn(arg)
 end
 
-local function getDirectory(path)
-    local url = "https://api.github.com/repos/Gorillatagmodder123456/noxvapeMain/contents/noxvape-main/" .. path .. "?ref=main"
+-- Hard-coded modules (no GitHub API)
+local modules = {
+    -- combat
+    "src/mods/combat/aim_assist.lua",
+    "src/mods/combat/auto_clicker.lua",
+    "src/mods/combat/kill_aura.lua",
+    "src/mods/combat/no_click_delay.lua",
+    "src/mods/combat/sprint.lua",
 
-    local response = game:HttpGet(url)
-    local ok, data = pcall(function()
-        return HttpService:JSONDecode(response)
-    end)
+    -- exploits
+    "src/mods/exploits/krystal_disabler.lua",
 
-    assert(ok, "noxvape: GitHub API returned invalid JSON")
+    -- movement
+    "src/mods/movement/antifall.lua",
+    "src/mods/movement/fly.lua",
+    "src/mods/movement/inf_jump.lua",
+    "src/mods/movement/player_attach.lua",
+    "src/mods/movement/speed.lua",
+    "src/mods/movement/spider.lua",
+    "src/mods/movement/tp_down.lua",
 
-    assert(type(data) == "table", "noxvape: invalid GitHub directory response")
+    -- other
+    "src/mods/other/breaker.lua",
+    "src/mods/other/no_anims.lua",
+    "src/mods/other/spin_bot.lua",
 
-    return data
-end
-
-local function collectLuaFiles(path, result)
-    result = result or {}
-
-    for _, entry in ipairs(getDirectory(path)) do
-        if entry.type == "dir" then
-            collectLuaFiles(entry.path:gsub("^noxvape%-main/", ""), result)
-        elseif entry.type == "file" and entry.name:sub(-4) == ".lua" and entry.name ~= "init.lua" then
-            result[#result + 1] = entry.path:gsub("^noxvape%-main/", "")
-        end
-    end
-
-    return result
-end
+    -- renderer
+    "src/mods/renderer/box_esp.lua",
+    "src/mods/renderer/breadcrumbs.lua",
+    "src/mods/renderer/chams.lua",
+    "src/mods/renderer/item_drop.lua",
+    "src/mods/renderer/name_tags.lua",
+    "src/mods/renderer/transparent.lua",
+    "src/mods/renderer/world_theme.lua",
+}
 
 local NoxLib = load("NoxLib.lua")
 local Core = load("src/backend/core.lua", NoxLib)
 
 load("src/backend/categories.lua", NoxLib)
 
-local modules = collectLuaFiles("src/mods")
 table.sort(modules)
 
 for _, path in ipairs(modules) do
@@ -55,4 +58,3 @@ end
 NoxLib.init()
 
 return true
-
