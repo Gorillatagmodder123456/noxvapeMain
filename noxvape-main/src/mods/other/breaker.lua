@@ -30,39 +30,45 @@ local collectAllEntities = Core.collectAllEntities
 local getClosestTarget = Core.getClosestTarget
 local findBed = Core.findBed
 
+do
     NoxLib.addButton("Other", {
         name = "Breaker",
         toggle = true,
         description = "Breaks blocks around you",
         settings = {
-			{
-				type = "checkbox",
-				name = "Ores",
-				key = "ores",
-				default = false,
-				action = function()
-					
-				end
-			},
             {
-				type = "checkbox",
-				name = "Fast Break",
-				key = "fastbreak",
-				default = false,
-				action = function()
-					
-				end
-			},
+                type = "checkbox",
+                name = "Ores",
+                key = "ores",
+                default = false,
+                action = function()
+                    
+                end
+            },
             {
-				type = "checkbox",
-				name = "Show Block",
-				key = "showblock",
-				default = false,
-				action = function()
-					
-				end
-			},
+                type = "checkbox",
+                name = "Fast Break",
+                key = "fastbreak",
+                default = false,
+                action = function()
+                    
+                end
+            },
+            {
+                type = "checkbox",
+                name = "Show Block",
+                key = "showblock",
+                default = false,
+                action = function()
+                    
+                end
+            },
         },
+        -- You still need to implement the actual breaking logic in the action function
+        action = function(enabled)
+            -- TODO: add breaker code here
+            return true
+        end
     })
 end
 return true
