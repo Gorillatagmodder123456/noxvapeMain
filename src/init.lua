@@ -1,259 +1,72 @@
+print("[noxvape] INIT STARTED")
+
 local BASE_URL = select(1, ...)
 
-assert(
-    type(BASE_URL) == "string",
-    "[noxvape] BASE_URL was not provided"
-)
+print("[noxvape] BASE_URL = " .. tostring(BASE_URL))
 
-local HttpService = game:GetService("HttpService")
-
-print("[noxvape] init.lua started")
-print("[noxvape] BASE_URL: " .. BASE_URL)
-
---// NoxLib
-
-print("[noxvape] loading NoxLib")
+if type(BASE_URL) ~= "string" then
+    error("[noxvape] BASE_URL is missing")
+end
 
 local NOXLIB_URL =
     "https://raw.githubusercontent.com/Gorillatagmodder123456/Noxvape/refs/heads/main/noxvape.lua"
 
+print("[noxvape] downloading NoxLib")
+
 local noxLibSource = game:HttpGet(NOXLIB_URL)
+
+print("[noxvape] NoxLib downloaded")
 
 local noxLibLoader, noxLibError = loadstring(
     noxLibSource,
     "@noxvape/NoxLib"
 )
 
-assert(
-    noxLibLoader,
-    "[noxvape] NoxLib compile error: " .. tostring(noxLibError)
-)
+if not noxLibLoader then
+    error(
+        "[noxvape] NoxLib compile error: "
+        .. tostring(noxLibError)
+    )
+end
+
+print("[noxvape] executing NoxLib")
 
 local noxLibSuccess, NoxLib = pcall(noxLibLoader)
 
-assert(
-    noxLibSuccess,
-    "[noxvape] NoxLib execution error: " .. tostring(NoxLib)
-)
-
-assert(
-    type(NoxLib) == "table",
-    "[noxvape] NoxLib did not return a table"
-)
-
-print("[noxvape] NoxLib loaded")
-
---// Nox project object
-
-local Nox = {
-    Lib = NoxLib,
-    BaseURL = BASE_URL,
-    Mods = {},
-    Categories = {}
-}
-
---// GitHub API
-
-local GITHUB_API =
-    "https://api.github.com/repos/Gorillatagmodder123456/noxvapeMain/contents/"
-
-local function getDirectory(path)
-    local url = GITHUB_API .. path
-
-    local success, result = pcall(function()
-        local response = game:HttpGet(url)
-
-        return HttpService:JSONDecode(response)
-    end)
-
-    if not success then
-        warn(
-            "[noxvape] Failed to read directory "
-            .. tostring(path)
-            .. ": "
-            .. tostring(result)
-        )
-
-        return {}
-    end
-
-    if type(result) ~= "table" then
-        warn(
-            "[noxvape] Invalid GitHub response for "
-            .. tostring(path)
-        )
-
-        return {}
-    end
-
-    return result
-end
-
---// Load a single Lua module
-
-local function loadModule(path)
-    print("[noxvape] downloading " .. path)
-
-    local success, source = pcall(function()
-        return game:HttpGet(BASE_URL .. path)
-    end)
-
-    if not success then
-        warn(
-            "[noxvape] Failed to download "
-            .. tostring(path)
-            .. ": "
-            .. tostring(source)
-        )
-
-        return
-    end
-
-    local fn, compileError = loadstring(
-        source,
-        "@noxvape/" .. path
+if not noxLibSuccess then
+    error(
+        "[noxvape] NoxLib execution error: "
+        .. tostring(NoxLib)
     )
-
-    if not fn then
-        warn(
-            "[noxvape] Compile error in "
-            .. tostring(path)
-            .. ": "
-            .. tostring(compileError)
-        )
-
-        return
-    end
-
-    local moduleSuccess, module = pcall(fn)
-
-    if not moduleSuccess then
-        warn(
-            "[noxvape] Runtime error in "
-            .. tostring(path)
-            .. ": "
-            .. tostring(module)
-        )
-
-        return
-    end
-
-    if type(module) ~= "table" then
-        warn(
-            "[noxvape] "
-            .. tostring(path)
-            .. " did not return a table"
-        )
-
-        return
-    end
-
-    --// Register category
-
-    if type(module.Category) == "string"
-        and module.Category ~= ""
-    then
-        if not Nox.Categories[module.Category] then
-            Nox.Categories[module.Category] = true
-
-            if type(NoxLib.addCategory) == "function" then
-                local categorySuccess, categoryError = pcall(function()
-                    NoxLib.addCategory(module.Category)
-                end)
-
-                if not categorySuccess then
-                    warn(
-                        "[noxvape] Failed to create category "
-                        .. module.Category
-                        .. ": "
-                        .. tostring(categoryError)
-                    )
-                end
-            end
-
-            print(
-                "[noxvape] category: "
-                .. module.Category
-            )
-        end
-    end
-
-    table.insert(Nox.Mods, module)
-
-    --// Initialize module
-
-    if type(module.Init) == "function" then
-        local initSuccess, initError = pcall(function()
-            module:Init(Nox)
-        end)
-
-        if not initSuccess then
-            warn(
-                "[noxvape] Init error in "
-                .. tostring(path)
-                .. ": "
-                .. tostring(initError)
-            )
-        end
-    end
-
-    print("[noxvape] loaded " .. tostring(path))
 end
 
---// Recursively scan directories
+print("[noxvape] NoxLib executed")
 
-local function loadDirectory(path)
-    print("[noxvape] scanning " .. path)
+print("[noxvape] NoxLib type = " .. type(NoxLib))
 
-    local entries = getDirectory(path)
-
-    for _, entry in ipairs(entries) do
-        if entry.type == "dir" then
-
-            loadDirectory(entry.path)
-
-        elseif entry.type == "file" then
-
-            local name = entry.name
-
-            if type(name) == "string"
-                and name:sub(-4) == ".lua"
-            then
-                loadModule(entry.path)
-            end
-        end
-    end
+if type(NoxLib) ~= "table" then
+    error("[noxvape] NoxLib did not return a table")
 end
 
---// Load every mod inside src/mods
+print("[noxvape] NoxLib.init type = " .. type(NoxLib.init))
 
-loadDirectory("src/mods")
+if type(NoxLib.init) ~= "function" then
+    error("[noxvape] NoxLib.init() is missing")
+end
 
-print(
-    "[noxvape] loaded "
-    .. tostring(#Nox.Mods)
-    .. " modules"
-)
-
---// Initialize the GUI
-
-print("[noxvape] initializing GUI")
-
-assert(
-    type(NoxLib.init) == "function",
-    "[noxvape] NoxLib.init() does not exist"
-)
+print("[noxvape] calling NoxLib.init()")
 
 local guiSuccess, guiError = pcall(function()
     NoxLib.init()
 end)
 
-assert(
-    guiSuccess,
-    "[noxvape] GUI initialization failed: "
-    .. tostring(guiError)
-)
+if not guiSuccess then
+    error(
+        "[noxvape] NoxLib.init() error: "
+        .. tostring(guiError)
+    )
+end
 
-print("[noxvape] GUI initialized")
+print("[noxvape] NoxLib.init() finished")
 
-return Nox
+return NoxLib
