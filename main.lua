@@ -1,9 +1,28 @@
-local BASE_URL = "https://raw.githubusercontent.com/Gorillatagmodder123456/noxvapeMain/main/"
+print("[noxvape] MAIN STARTED")
 
-local source = game:HttpGet(BASE_URL .. "src/init.lua")
+local URL = "https://raw.githubusercontent.com/Gorillatagmodder123456/noxvapeMain/refs/heads/main/src/init.lua"
+
+print("[noxvape] downloading init.lua")
+
+local source = game:HttpGet(URL)
+
+print("[noxvape] init.lua downloaded")
 
 local fn, err = loadstring(source)
 
-assert(fn, "Failed to load src/init.lua: " .. tostring(err))
+if not fn then
+    warn("[noxvape] loadstring failed: " .. tostring(err))
+    return
+end
 
-return fn(BASE_URL)
+print("[noxvape] executing init.lua")
+
+local ok, result = pcall(fn)
+
+if not ok then
+    warn("[noxvape] init.lua error: " .. tostring(result))
+    return
+end
+
+print("[noxvape] DONE")
+return result
